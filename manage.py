@@ -6,7 +6,7 @@ from pathlib import Path
 
 def main():
     # Add django/ folder to path so guru_project is findable
-    sys.path.insert(0, str(Path(__file__).resolve().parent / 'django'))
+    sys.path.insert(0, str(Path(__file__).resolve().parent / 'app'))
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'guru_project.settings')
     try:

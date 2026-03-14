@@ -32,15 +32,14 @@ WORKDIR /app
 EXPOSE 7860
 
 CMD ["sh", "-c", "\
-  python manage.py migrate --run-syncdb && \
-  python manage.py shell -c \"\
+  PYTHONPATH=/app/app python manage.py migrate --run-syncdb && \
+  PYTHONPATH=/app/app python manage.py shell -c \"\
 import os; \
 from django.contrib.auth import get_user_model; \
 User = get_user_model(); \
 email = os.environ.get('ADMIN_EMAIL','admin@example.com'); \
 password = os.environ.get('ADMIN_PASSWORD','changeme123'); \
 User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', email, password); \
-print('Superuser ready') \
 \" && \
-  gunicorn guru_project.wsgi:application --bind 0.0.0.0:7860 --workers 2 --timeout 120 \
+  PYTHONPATH=/app/app gunicorn guru_project.wsgi:application --bind 0.0.0.0:7860 --workers 2 --timeout 120 \
 "]
