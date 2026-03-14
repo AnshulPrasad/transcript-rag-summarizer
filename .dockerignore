@@ -9,3 +9,5 @@ __pycache__/
 uv.lock
 pyproject.toml
 outputs/
+data/subtitles_vtt
+data/transcripts_txt

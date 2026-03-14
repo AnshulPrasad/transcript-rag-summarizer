@@ -1,11 +1,10 @@
 ---
-title: ask Assistant
-emoji: 📚
-colorFrom: indigo
+title: Ask the Guru
+emoji: 🧘
+colorFrom: yellow
 colorTo: blue
 sdk: docker
-app_file: app.py
-pinned: false
+app_port: 7860
 ---
 
 # RAG Q&A Assistant
