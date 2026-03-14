@@ -4,3 +4,5 @@ data/transcripts_txt
 .vscode/settings.json
 .venv
 .idea
+uv.lock
+pyproject.toml

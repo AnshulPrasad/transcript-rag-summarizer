@@ -14,9 +14,11 @@ TRANSCRIPT_INDEX = "data/transcript_index.faiss"
 RETRIEVED_TRANSCRIPTS_FILE = Path("outputs/retrieved_transcripts.txt")
 RESPONSE_FILE = Path("outputs/generated_response.txt")
 COOKIES_FILE = Path("utils/youtube_cookies.txt")
+
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 MODEL = "llama-3.1-8b-instant"
 MAX_CONTEXT_TOKENS = 4500
+
 SYSTEM_PROMPT = """
 You are speaking as Spiritual Guru.
 
@@ -35,12 +37,11 @@ Guidelines:
 - Do not reference yourself as an AI or model.
 - Do not mention that you are imitating someone.
 - If the context is insufficient, say so plainly instead of guessing.
-- "Answer questions strictly using the provided context. "
-- "Do not add external knowledge."
+- Answer questions strictly using the provided context.
+- Do not add external knowledge.
 
 Structure:
 - Begin by addressing the core misunderstanding.
 - Then explain the principle.
 - End with a reflective or probing statement rather than advice.
-
 """
