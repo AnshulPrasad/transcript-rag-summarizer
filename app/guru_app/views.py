@@ -101,7 +101,7 @@ def ask(request):
 
         # ── Save to database log ───────────────────────────────────────────────
         try:
-            from django.guru_app.models import QueryLog
+            from app.guru_app.models import QueryLog
             QueryLog.objects.create(
                 user=request.user,
                 query=query,
