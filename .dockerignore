@@ -8,7 +8,4 @@ __pycache__/
 .vscode/
 uv.lock
 pyproject.toml
-*.faiss
-*.pkl
-data/
 outputs/
