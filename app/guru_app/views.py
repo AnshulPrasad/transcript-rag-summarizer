@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 import pickle
@@ -9,7 +10,6 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
 
 # Make sure project root is on path so config, api, utils are importable
 BASE = Path(__file__).resolve().parent.parent
@@ -23,7 +23,7 @@ from utils.token import count_tokens, trim_to_token_limit
 
 logger = logging.getLogger(__name__)
 
-# ── Data loaded once at module import ─────────────────────────────────────────
+# ── Data loaded once at module import (same as FastAPI startup event) ──────────
 _file_paths: list = []
 _transcripts: list = []
 _data_loaded = False
@@ -49,32 +49,20 @@ _load_data()
 
 # ── Views ──────────────────────────────────────────────────────────────────────
 
-@login_required
 def index(request):
-    """Render the main chat page — login required."""
+    """Render the main chat page."""
     history = request.session.get('chat_history', [])
-    user = request.user
-    # Get Google profile picture if available
-    avatar_url = None
-    try:
-        social = user.socialaccount_set.filter(provider='google').first()
-        if social:
-            avatar_url = social.extra_data.get('picture')
-    except Exception:
-        pass
-
-    return render(request, 'guru/index.html', {
-        'history': history,
-        'user': user,
-        'avatar_url': avatar_url,
-    })
+    return render(request, 'guru/index.html', {'history': history})
 
 
 @csrf_exempt
-@login_required
 @require_http_methods(['POST'])
 def ask(request):
-    """POST /ask/ — requires login."""
+    """
+    POST /ask/
+    Body: {"query": "..."}
+    Returns: {"answer": "...", "query": "...", "timestamp": "..."}
+    """
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
@@ -85,7 +73,7 @@ def ask(request):
         return JsonResponse({'error': 'Query cannot be empty'}, status=400)
 
     if not _data_loaded:
-        return JsonResponse({'error': 'Transcript data not loaded.'}, status=503)
+        return JsonResponse({'error': 'Transcript data not loaded. Please check server logs.'}, status=503)
 
     try:
         retrieved = retrieve_transcripts(query, _file_paths, _transcripts, top_k=15)
@@ -96,27 +84,16 @@ def ask(request):
         limited_context = trim_to_token_limit(full_context, MAX_CONTEXT_TOKENS)
         answer = generate_response(query, limited_context)
 
-        logger.info('User: %s | Query: %s | Tokens: %d',
-                    request.user.email, query, count_tokens(limited_context))
+        logger.info('Query: %s | Tokens: %d', query, count_tokens(limited_context))
 
-        # ── Save to database log ───────────────────────────────────────────────
-        try:
-            from app.guru_app.models import QueryLog
-            QueryLog.objects.create(
-                user=request.user,
-                query=query,
-                answer=answer,
-                tokens_used=count_tokens(limited_context),
-            )
-        except Exception as log_exc:
-            logger.warning('Failed to save query log: %s', log_exc)
-
+        # ── Save to session chat history ───────────────────────────────────────
         history = request.session.get('chat_history', [])
         history.append({
             'query': query,
             'answer': answer,
             'timestamp': datetime.now().strftime('%d %b %Y, %H:%M'),
         })
+        # Keep last 50 exchanges
         request.session['chat_history'] = history[-50:]
         request.session.modified = True
 
@@ -128,19 +105,19 @@ def ask(request):
 
     except Exception as exc:
         logger.exception('Error processing query: %s', exc)
-        return JsonResponse({'error': 'Internal server error.'}, status=500)
+        return JsonResponse({'error': 'Internal server error. Please try again.'}, status=500)
 
 
-@login_required
 @require_http_methods(['GET'])
 def history(request):
+    """GET /history/ — return full chat history as JSON."""
     return JsonResponse({'history': request.session.get('chat_history', [])})
 
 
 @csrf_exempt
-@login_required
 @require_http_methods(['POST'])
 def clear_history(request):
+    """POST /clear-history/ — wipe session chat history."""
     request.session['chat_history'] = []
     request.session.modified = True
     return JsonResponse({'status': 'cleared'})
