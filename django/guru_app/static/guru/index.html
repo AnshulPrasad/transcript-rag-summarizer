@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ask the Guru</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #faf7f2;
+  --surface: #ffffff;
+  --border: #e8e0d4;
+  --text: #2c2416;
+  --muted: #8c7b6b;
+  --accent: #b5732a;
+  --accent2: #7a4f2d;
+  --gold: #c9a84c;
+  --answer-bg: #f5f0e8;
+  --radius: 16px;
+  --shadow: 0 4px 32px rgba(44,36,22,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Jost', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Mandala Background ── */
+body::before {
+  content: '';
+  position: fixed;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -200px; left: -200px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(181,115,42,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Header ── */
+header {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #fff8ee 0%, var(--bg) 100%);
+}
+
+.guru-image-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 1.25rem;
+}
+.guru-image-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--gold), var(--accent), var(--gold), var(--accent2), var(--gold));
+  animation: halo-spin 12s linear infinite;
+  opacity: 0.5;
+}
+@keyframes halo-spin { to { transform: rotate(360deg); } }
+
+.guru-image {
+  position: relative;
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--bg);
+  display: block;
+}
+
+header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+header p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 0.4rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 300;
+}
+
+/* ── Divider ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 2rem;
+  margin: 1.5rem 0;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+}
+.divider span {
+  font-size: 1.2rem;
+  color: var(--gold);
+}
+
+/* ── Main Layout ── */
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Input Card ── */
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+.input-card label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+.input-row {
+  display: flex;
+  gap: 0.75rem;
+}
+.input-row input {
+  flex: 1;
+  padding: 0.85rem 1.1rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-row input::placeholder { color: var(--muted); }
+.input-row input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+}
+.btn-ask {
+  padding: 0.85rem 1.5rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn-ask:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-ask:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ── Answer Box ── */
+.answer-card {
+  background: var(--answer-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: none;
+  animation: fade-in 0.4s ease;
+}
+@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.answer-card.visible { display: block; }
+.answer-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+.answer-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  line-height: 1.85;
+  color: var(--text);
+}
+.answer-text p { margin-bottom: 0.75rem; }
+.answer-text p:last-child { margin-bottom: 0; }
+
+/* Loading dots */
+.dots span {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin: 0 2px;
+  animation: dot-bounce 1.2s infinite ease-in-out;
+}
+.dots span:nth-child(2) { animation-delay: 0.2s; }
+.dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* ── History Section ── */
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+.history-header h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+.btn-clear {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'Jost', sans-serif;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-clear:hover { border-color: var(--accent); color: var(--accent); }
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  animation: fade-in 0.3s ease;
+}
+.history-item .q {
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+.history-item .q span {
+  color: var(--muted);
+  font-weight: 300;
+  margin-left: 0.5rem;
+}
+.history-item .a {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: var(--text);
+}
+.history-item .a p { margin-bottom: 0.4rem; }
+.history-item .a p:last-child { margin-bottom: 0; }
+
+.no-history {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 2rem;
+  font-style: italic;
+}
+
+/* ── Footer ── */
+footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 480px) {
+  .input-row { flex-direction: column; }
+  .btn-ask { width: 100%; }
+  header { padding: 2rem 1rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="guru-image-wrap">
+    {% load static %}
+    <img class="guru-image" src="{% static 'guru/images/image1.webp' %}" alt="Spiritual Guru" onerror="this.style.display='none'"/>
+  </div>
+  <h1>Ask the Guru</h1>
+  <p>Advaita Vedanta · Inner Inquiry · Self-Knowledge</p>
+</header>
+
+<main>
+  <div class="divider"><span>✦</span></div>
+
+  <!-- Input -->
+  <div class="input-card">
+    <label>Your Question</label>
+    <div class="input-row">
+      <input type="text" id="question" placeholder="What is the nature of the self?" autocomplete="off"
+             onkeydown="if(event.key==='Enter') ask()"/>
+      <button class="btn-ask" id="ask-btn" onclick="ask()">Ask</button>
+    </div>
+  </div>
+
+  <!-- Live Answer -->
+  <div class="answer-card" id="answer-card">
+    <div class="answer-label">✦ The Guru Speaks</div>
+    <div class="answer-text" id="answer-text"></div>
+  </div>
+
+  <!-- History -->
+  <div class="history-header">
+    <h2>Previous Inquiries</h2>
+    <button class="btn-clear" onclick="clearHistory()">Clear All</button>
+  </div>
+
+  <div class="history-list" id="history-list">
+    {% if history %}
+      {% for item in history reversed %}
+      <div class="history-item">
+        <div class="q">{{ item.query }}<span>{{ item.timestamp }}</span></div>
+        <div class="a" data-answer="{{ item.answer|escapejs }}"></div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="no-history" id="no-history">Your inquiries will appear here.</div>
+    {% endif %}
+  </div>
+</main>
+
+<footer>
+  ॥ सत्यमेव जयते ॥ &nbsp;·&nbsp; Truth alone prevails
+</footer>
+
+<script>
+// Render markdown in history items on load
+document.querySelectorAll('.history-item .a[data-answer]').forEach(el => {
+  el.innerHTML = marked.parse(el.dataset.answer);
+});
+
+async function ask() {
+  const input = document.getElementById('question');
+  const btn = document.getElementById('ask-btn');
+  const card = document.getElementById('answer-card');
+  const box = document.getElementById('answer-text');
+  const q = input.value.trim();
+
+  if (!q) {
+    box.innerHTML = '<span style="color:#c0392b">Please enter a question.</span>';
+    card.classList.add('visible');
+    return;
+  }
+
+  btn.disabled = true;
+  card.classList.add('visible');
+  box.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>';
+
+  try {
+    const res = await fetch('/ask/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q })
+    });
+    const data = await res.json();
+
+    if (data.answer) {
+      box.innerHTML = marked.parse(data.answer);
+      // Prepend to history
+      addToHistory(data.query, data.answer, data.timestamp);
+      input.value = '';
+    } else {
+      box.innerHTML = `<span style="color:#c0392b">${data.error || 'No answer returned.'}</span>`;
+    }
+  } catch {
+    box.innerHTML = '<span style="color:#c0392b">Error contacting server. Please try again.</span>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function addToHistory(query, answer, timestamp) {
+  const list = document.getElementById('history-list');
+  const noHistory = document.getElementById('no-history');
+  if (noHistory) noHistory.remove();
+
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  item.innerHTML = `
+    <div class="q">${escapeHtml(query)}<span>${timestamp}</span></div>
+    <div class="a">${marked.parse(answer)}</div>
+  `;
+  list.insertBefore(item, list.firstChild);
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function clearHistory() {
+  await fetch('/clear-history/', { method: 'POST' });
+  const list = document.getElementById('history-list');
+  list.innerHTML = '<div class="no-history" id="no-history">Your inquiries will appear here.</div>';
+  document.getElementById('answer-card').classList.remove('visible');
+}
+</script>
+</body>
+</html>
