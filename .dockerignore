@@ -6,9 +6,9 @@ __pycache__/
 .git/
 .idea/
 .vscode/
-# Exclude raw corpora only; keep runtime index/pickle artifacts in image.
-data/subtitles_vtt/
-data/transcripts_txt/
-outputs/
 uv.lock
 pyproject.toml
+*.faiss
+*.pkl
+data/
+outputs/

@@ -11,19 +11,20 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-# Make sure project root is on path so config, api, utils are importable
-BASE = Path(__file__).resolve().parent.parent
-if str(BASE) not in sys.path:
-    sys.path.insert(0, str(BASE))
+logger = logging.getLogger(__name__)
+
+# ── Ensure project root is on sys.path so config/api/utils are importable ─────
+ROOT = Path(__file__).resolve().parent.parent.parent.parent  # project root
+for p in [str(ROOT), str(ROOT / 'app')]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 from config import FILE_PATHS, TRANSCRIPTS, MAX_CONTEXT_TOKENS
 from api.generate_response import generate_response
 from api.retrieve_context import retrieve_transcripts
 from utils.token import count_tokens, trim_to_token_limit
 
-logger = logging.getLogger(__name__)
-
-# ── Data loaded once at module import (same as FastAPI startup event) ──────────
+# ── Load transcript data once at startup ──────────────────────────────────────
 _file_paths: list = []
 _transcripts: list = []
 _data_loaded = False
@@ -50,7 +51,6 @@ _load_data()
 # ── Views ──────────────────────────────────────────────────────────────────────
 
 def index(request):
-    """Render the main chat page."""
     history = request.session.get('chat_history', [])
     return render(request, 'guru/index.html', {'history': history})
 
@@ -58,11 +58,6 @@ def index(request):
 @csrf_exempt
 @require_http_methods(['POST'])
 def ask(request):
-    """
-    POST /ask/
-    Body: {"query": "..."}
-    Returns: {"answer": "...", "query": "...", "timestamp": "..."}
-    """
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
@@ -73,7 +68,10 @@ def ask(request):
         return JsonResponse({'error': 'Query cannot be empty'}, status=400)
 
     if not _data_loaded:
-        return JsonResponse({'error': 'Transcript data not loaded. Please check server logs.'}, status=503)
+        return JsonResponse(
+            {'error': 'Transcript data not loaded. Please check server logs.'},
+            status=503
+        )
 
     try:
         retrieved = retrieve_transcripts(query, _file_paths, _transcripts, top_k=15)
@@ -86,14 +84,25 @@ def ask(request):
 
         logger.info('Query: %s | Tokens: %d', query, count_tokens(limited_context))
 
-        # ── Save to session chat history ───────────────────────────────────────
+        # ── Save to DB log ─────────────────────────────────────────────────────
+        try:
+            from guru_app.models import QueryLog
+            QueryLog.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                query=query,
+                answer=answer,
+                tokens_used=count_tokens(limited_context),
+            )
+        except Exception as log_exc:
+            logger.warning('Failed to save query log: %s', log_exc)
+
+        # ── Save to session history ────────────────────────────────────────────
         history = request.session.get('chat_history', [])
         history.append({
             'query': query,
             'answer': answer,
             'timestamp': datetime.now().strftime('%d %b %Y, %H:%M'),
         })
-        # Keep last 50 exchanges
         request.session['chat_history'] = history[-50:]
         request.session.modified = True
 
@@ -110,14 +119,12 @@ def ask(request):
 
 @require_http_methods(['GET'])
 def history(request):
-    """GET /history/ — return full chat history as JSON."""
     return JsonResponse({'history': request.session.get('chat_history', [])})
 
 
 @csrf_exempt
 @require_http_methods(['POST'])
 def clear_history(request):
-    """POST /clear-history/ — wipe session chat history."""
     request.session['chat_history'] = []
     request.session.modified = True
     return JsonResponse({'status': 'cleared'})
