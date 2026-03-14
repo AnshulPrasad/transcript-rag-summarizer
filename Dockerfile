@@ -27,8 +27,8 @@ USER appuser
 ENV HOME=/home/appuser
 
 WORKDIR /app
+ENV PYTHONPATH=/app
 
 # HF Spaces requires port 7860
 EXPOSE 7860
-
 CMD ["gunicorn", "guru_project.wsgi:application", "--bind", "0.0.0.0:7860", "--workers", "2", "--timeout", "120"]
