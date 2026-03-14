@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "django>=5.2.12",
     "faiss-cpu==1.9.0",
     "fastapi==0.116.1",
     "groq>=1.0.0",
