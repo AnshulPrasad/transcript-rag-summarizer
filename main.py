@@ -28,8 +28,8 @@ def stage_persist(file_paths, transcripts) -> None:
         pickle.dump(transcripts, f)
 
 
-def stage_retrieve(query: str, file_paths: list[Path], transcripts: list[str], k: int = 20) -> list[str]:
-    results = retrieve_transcripts(query, file_paths, transcripts, k)
+def stage_retrieve(query: str, k: int = 20) -> list[str]:
+    results = retrieve_transcripts(query, k)
     if not results:
         logger.warning("No relevant transcripts found")
     return results
@@ -99,6 +99,7 @@ def main() -> None:
 
     logger.info("Full_context: %d tokens, %d words", count_tokens(full_context), len(full_context.split(" ")), )
     logger.info("Limit_context: %d tokens, %d words", count_tokens(limit_context), len(limit_context.split(" ")))
+    # retrieved = stage_retrieve(query)
 
 
 if __name__ == "__main__":
