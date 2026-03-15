@@ -39,7 +39,7 @@ def load_text_corpus(txt_dir: Path) -> tuple[list[Path], list[str]]:
     transcripts = []
     file_paths = []
 
-    for file_path in txt_dir.glob("*.txt"):
+    for file_path in sorted(txt_dir.glob("*.txt")):
         text = file_path.read_text(encoding="utf-8")
         transcripts.append(text)
         file_paths.append(file_path)
