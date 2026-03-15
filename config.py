@@ -15,7 +15,7 @@ CHUNKS_PKL = "data/chunks.pkl"                     # ← new: chunked texts
 
 RETRIEVED_TRANSCRIPTS_FILE = Path("outputs/retrieved_transcripts.txt")
 RESPONSE_FILE              = Path("outputs/generated_response.txt")
-COOKIES_FILE               = Path("utils/youtube_cookies.txt")
+COOKIES_FILE               = Path("src/youtube_cookies.txt")
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 MODEL        = "llama-3.1-8b-instant"

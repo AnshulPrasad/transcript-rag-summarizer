@@ -1,4 +1,3 @@
-import os
 import sys
 import json
 import pickle
@@ -13,16 +12,16 @@ from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
 
-# ── Ensure project root is on sys.path so config/api/utils are importable ─────
+# ── Ensure project root is on sys.path so config/api/src are importable ─────
 ROOT = Path(__file__).resolve().parent.parent.parent.parent  # project root
 for p in [str(ROOT), str(ROOT / 'app')]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
 from config import FILE_PATHS, TRANSCRIPTS, MAX_CONTEXT_TOKENS
-from api.generate_response import generate_response
-from api.retrieve_context import retrieve_transcripts
-from utils.token import count_tokens, trim_to_token_limit
+from src.generate_response import generate_response
+from src.retrieve_context import retrieve_transcripts
+from src.token import count_tokens, trim_to_token_limit
 
 # ── Load transcript data once at startup ──────────────────────────────────────
 _file_paths: list = []
