@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 
-from utils.preprocess import chunk_text
+from src.preprocess import chunk_text
 
 logger = logging.getLogger(__name__)
 
