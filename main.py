@@ -8,16 +8,11 @@ from src.preprocess import load_text_corpus
 from src.retrieve_context import retrieve_transcripts
 from src.generate_response import generate_response
 from src.embed_transcripts import embedding
-from config import CHANNEL_URLS, VTT_DIR, TXT_DIR, TRANSCRIPT_INDEX, RETRIEVED_TRANSCRIPTS_FILE, RESPONSE_FILE, \
+from src.token import trim_to_token_limit, count_tokens
+from config import CHANNEL_URLS, MAX_CONTEXT_TOKENS, VTT_DIR, TXT_DIR, TRANSCRIPT_INDEX, RETRIEVED_TRANSCRIPTS_FILE, RESPONSE_FILE, \
     FILE_PATHS, TRANSCRIPTS, CHUNKS_PKL
 
 logger = logging.getLogger(__name__)
-
-
-def stage_query() -> str | None:
-    query = input("Enter query:\n").strip()
-    return query or None
-
 
 def stage_download() -> None:
     for channel_url in CHANNEL_URLS:
@@ -27,20 +22,11 @@ def stage_download() -> None:
             logger.exception("Failed to download subtitles for %s", channel_url)
 
 
-def stage_preprocess() -> tuple[list[Path], list[str]]:
-    vtt_to_txt(VTT_DIR, TXT_DIR)
-    return load_text_corpus(TXT_DIR)
-
-
 def stage_persist(file_paths, transcripts) -> None:
     with open(FILE_PATHS, "wb") as f:
         pickle.dump(file_paths, f)
     with open(TRANSCRIPTS, "wb") as f:
         pickle.dump(transcripts, f)
-
-
-def stage_embed(transcripts: list[str]) -> None:
-    embedding(transcripts, TRANSCRIPT_INDEX, CHUNKS_PKL)
 
 
 def stage_retrieve(query: str, file_paths: list[Path], transcripts: list[str], k: int = 20) -> list[str]:
@@ -49,9 +35,6 @@ def stage_retrieve(query: str, file_paths: list[Path], transcripts: list[str], k
         logger.warning("No relevant transcripts found")
     return results
 
-
-def stage_generate(query: str, context: str) -> str:
-    return generate_response(query, context)
 
 
 def write_retrieved_transcripts(retrieved_transcripts: list[str], file_paths: list[Path]) -> None:
@@ -74,13 +57,14 @@ def write_response(response):
 
 
 def main() -> None:
-    query = stage_query()
+    query = input("Enter query:\n").strip()
     if not query:
         logger.error("Query cannot be empty")
         return
 
     stage_download()
-    file_paths, transcripts = stage_preprocess()
+    vtt_to_txt(VTT_DIR, TXT_DIR)
+    file_paths, transcripts = load_text_corpus(TXT_DIR)
     stage_persist(file_paths, transcripts)
 
     with open(FILE_PATHS, "rb") as f:
@@ -89,7 +73,7 @@ def main() -> None:
         transcripts = pickle.load(f)
     file_paths = [Path(p) for p in file_paths]
 
-    stage_embed(transcripts)
+    embedding(transcripts, TRANSCRIPT_INDEX, CHUNKS_PKL)
 
     retrieved = stage_retrieve(query, file_paths, transcripts)
     if not retrieved:
@@ -100,7 +84,7 @@ def main() -> None:
     limit_context = trim_to_token_limit(full_context, MAX_CONTEXT_TOKENS)
     context_str = " ".join(limit_context.split("\n"))
 
-    response = stage_generate(query, limit_context)
+    response = generate_response(query, limit_context)
     write_response("\n".join([f"Received query: {query}", f"Context: {context_str}", f"Response: {response}"]))
 
     logger.info("Full_context: %d tokens, %d words", count_tokens(full_context), len(full_context.split(" ")), )
