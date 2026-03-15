@@ -4,7 +4,6 @@ from pathlib import Path
 
 from src.download_vtt import download_channel_subtitles
 from src.vtt_to_txt import vtt_to_txt
-from src.preprocess import load_text_corpus
 from src.retrieve_context import retrieve_transcripts
 from src.generate_response import generate_response
 from src.embed_transcripts import embedding
@@ -35,7 +34,18 @@ def stage_retrieve(query: str, file_paths: list[Path], transcripts: list[str], k
         logger.warning("No relevant transcripts found")
     return results
 
+def load_text_corpus(txt_dir: Path) -> tuple[list[Path], list[str]]:
+    """Load a corpus of text files from a directory."""
+    transcripts = []
+    file_paths = []
 
+    for file_path in txt_dir.glob("*.txt"):
+        text = file_path.read_text(encoding="utf-8")
+        transcripts.append(text)
+        file_paths.append(file_path)
+
+    logger.info("Collected %d transcripts", len(file_paths))
+    return file_paths, transcripts
 
 def write_retrieved_transcripts(retrieved_transcripts: list[str], file_paths: list[Path]) -> None:
     try:
