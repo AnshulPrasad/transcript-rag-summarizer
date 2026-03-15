@@ -9,13 +9,16 @@ from utils.token import count_tokens, trim_to_token_limit
 from api.retrieve_context import retrieve_transcripts
 from api.generate_response import generate_response
 from api.embed_transcripts import embedding
-from config import CHANNEL_URLS, VTT_DIR, TXT_DIR, TRANSCRIPT_INDEX, RETRIEVED_TRANSCRIPTS_FILE, RESPONSE_FILE, FILE_PATHS, TRANSCRIPTS, MAX_CONTEXT_TOKENS
+from config import CHANNEL_URLS, VTT_DIR, TXT_DIR, TRANSCRIPT_INDEX, RETRIEVED_TRANSCRIPTS_FILE, RESPONSE_FILE, \
+    FILE_PATHS, TRANSCRIPTS, MAX_CONTEXT_TOKENS, CHUNKS_PKL
 
 logger = logging.getLogger(__name__)
+
 
 def stage_query() -> str | None:
     query = input("Enter query:\n").strip()
     return query or None
+
 
 def stage_download() -> None:
     for channel_url in CHANNEL_URLS:
@@ -24,10 +27,12 @@ def stage_download() -> None:
         except Exception:
             logger.exception("Failed to download subtitles for %s", channel_url)
 
+
 def stage_preprocess() -> tuple[list[Path], list[str]]:
     vtt_to_txt(VTT_DIR, TXT_DIR)
     deduplicate_consecutive_lines(TXT_DIR)
     return load_text_corpus(TXT_DIR)
+
 
 def stage_persist(file_paths, transcripts) -> None:
     with open(FILE_PATHS, "wb") as f:
@@ -35,8 +40,10 @@ def stage_persist(file_paths, transcripts) -> None:
     with open(TRANSCRIPTS, "wb") as f:
         pickle.dump(transcripts, f)
 
+
 def stage_embed(transcripts: list[str]) -> None:
-    embedding(transcripts, TRANSCRIPT_INDEX)
+    embedding(transcripts, TRANSCRIPT_INDEX, CHUNKS_PKL)
+
 
 def stage_retrieve(query: str, file_paths: list[Path], transcripts: list[str], k: int = 20) -> list[str]:
     results = retrieve_transcripts(query, file_paths, transcripts, k)
@@ -44,8 +51,10 @@ def stage_retrieve(query: str, file_paths: list[Path], transcripts: list[str], k
         logger.warning("No relevant transcripts found")
     return results
 
+
 def stage_generate(query: str, context: str) -> str:
     return generate_response(query, context)
+
 
 def write_retrieved_transcripts(retrieved_transcripts: list[str], file_paths: list[Path]) -> None:
     try:
@@ -71,7 +80,7 @@ def main() -> None:
     if not query:
         logger.error("Query cannot be empty")
         return
-    
+
     stage_download()
     file_paths, transcripts = stage_preprocess()
     stage_persist(file_paths, transcripts)
@@ -102,5 +111,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO,format="%(asctime)s %(levelname)s [%(name)s]: %(message)s",)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s]: %(message)s", )
     main()
