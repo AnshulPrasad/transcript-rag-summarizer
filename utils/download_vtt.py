@@ -13,6 +13,9 @@ def download_channel_subtitles(channel_url: str, output_dir: Path, language: str
     """
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    archive_file = output_dir / "archive.txt"
+    archive_file.touch(exist_ok=True)  # ← create if doesn't exist
+
     cmd = [
         "yt-dlp",
         "--skip-download",
@@ -40,6 +43,7 @@ def download_channel_subtitles(channel_url: str, output_dir: Path, language: str
         str(output_dir / "archive.txt"),
         "-o",
         str(output_dir / "%(id)s.%(ext)s"),
+        "--download-archive", str(archive_file),
         channel_url,
     ]
 
