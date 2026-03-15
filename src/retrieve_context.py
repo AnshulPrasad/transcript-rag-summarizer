@@ -33,8 +33,6 @@ def _load_index_and_chunks():
 
 def retrieve_transcripts(
     query: str,
-    file_paths: list[Path],    # kept for API compatibility, unused now
-    transcripts: list[str],    # kept for API compatibility, unused now
     top_k: int = 3,
     retrieve_k: int = 15,
 ) -> list[str]:
