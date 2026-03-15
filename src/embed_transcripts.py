@@ -3,13 +3,30 @@ import pickle
 import logging
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
-
-from src.preprocess import chunk_text
-
 logger = logging.getLogger(__name__)
 
 EMBED_MODEL = "BAAI/bge-small-en-v1.5"   # better than all-MiniLM-L6-v2, same speed
 
+def chunk_text(text: str, chunk_size: int = 200, overlap: int = 50) -> list[str]:
+    """
+    Split text into overlapping word-level chunks.
+
+    Args:
+        text: input text
+        chunk_size: words per chunk
+        overlap: words shared between consecutive chunks
+
+    Returns:
+        list of chunk strings (chunks shorter than 50 words are dropped)
+    """
+    words = text.split()
+    chunks = []
+    step = chunk_size - overlap
+    for i in range(0, len(words), step):
+        chunk = " ".join(words[i : i + chunk_size])
+        if len(chunk.split()) >= 50:   # drop tiny tail chunks
+            chunks.append(chunk)
+    return chunks
 
 def embedding(
     transcripts: list[str],
