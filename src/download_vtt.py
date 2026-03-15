@@ -37,4 +37,4 @@ def download_channel_subtitles(channel_url: str, output_dir: Path, language: str
         channel_url,
     ]
 
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=False)
