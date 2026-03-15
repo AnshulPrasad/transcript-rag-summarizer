@@ -2,15 +2,14 @@ import logging
 import pickle
 from pathlib import Path
 
-from utils.download_vtt import download_channel_subtitles
-from utils.vtt_to_txt import vtt_to_txt
-from utils.preprocess import deduplicate_consecutive_lines, load_text_corpus
-from utils.token import count_tokens, trim_to_token_limit
-from api.retrieve_context import retrieve_transcripts
-from api.generate_response import generate_response
-from api.embed_transcripts import embedding
+from src.download_vtt import download_channel_subtitles
+from src.vtt_to_txt import vtt_to_txt
+from src.preprocess import load_text_corpus
+from src.retrieve_context import retrieve_transcripts
+from src.generate_response import generate_response
+from src.embed_transcripts import embedding
 from config import CHANNEL_URLS, VTT_DIR, TXT_DIR, TRANSCRIPT_INDEX, RETRIEVED_TRANSCRIPTS_FILE, RESPONSE_FILE, \
-    FILE_PATHS, TRANSCRIPTS, MAX_CONTEXT_TOKENS, CHUNKS_PKL
+    FILE_PATHS, TRANSCRIPTS, CHUNKS_PKL
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,6 @@ def stage_download() -> None:
 
 def stage_preprocess() -> tuple[list[Path], list[str]]:
     vtt_to_txt(VTT_DIR, TXT_DIR)
-    deduplicate_consecutive_lines(TXT_DIR)
     return load_text_corpus(TXT_DIR)
 
 
