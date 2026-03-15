@@ -6,17 +6,19 @@ CHANNEL_URLS = [
     "https://www.youtube.com/@CHANNEL_ID_2",
 ]
 
-VTT_DIR = Path("data/subtitles_vtt")
-TXT_DIR = Path("data/transcripts_txt")
+VTT_DIR    = Path("data/subtitles_vtt")
+TXT_DIR    = Path("data/transcripts_txt")
 FILE_PATHS = Path("data/file_paths.pkl")
 TRANSCRIPTS = Path("data/transcripts.pkl")
-TRANSCRIPT_INDEX = "data/transcript_index.faiss"
+TRANSCRIPT_INDEX = "data/transcript_index.faiss"   # FILE not dir
+CHUNKS_PKL = "data/chunks.pkl"                     # ← new: chunked texts
+
 RETRIEVED_TRANSCRIPTS_FILE = Path("outputs/retrieved_transcripts.txt")
-RESPONSE_FILE = Path("outputs/generated_response.txt")
-COOKIES_FILE = Path("utils/youtube_cookies.txt")
+RESPONSE_FILE              = Path("outputs/generated_response.txt")
+COOKIES_FILE               = Path("utils/youtube_cookies.txt")
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-MODEL = "llama-3.1-8b-instant"
+MODEL        = "llama-3.1-8b-instant"
 MAX_CONTEXT_TOKENS = 4500
 
 SYSTEM_PROMPT = """
