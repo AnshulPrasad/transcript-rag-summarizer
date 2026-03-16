@@ -53,7 +53,7 @@ DATABASES = {
 
 STATIC_URL = '/static/'
 _static_dir = BASE_DIR / 'guru_app' / 'static'
-STATICFILES_DIRS = [_static_dir] if _static_dir.exists() else []
+STATICFILES_DIRS = [BASE_DIR / 'guru_app' / 'static']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
