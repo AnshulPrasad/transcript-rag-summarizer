@@ -19,7 +19,7 @@ class Context:
     def load_index_and_chunks(self):
         if self.index is not None:
             return
-        self.index = faiss.read_index(self.chunk_faiss)
+        self.index = faiss.read_index(str(self.chunk_faiss))
         with open(self.chunk_pkl, "rb") as f:
             self.chunks = pickle.load(f)
         logger.info("Loaded FAISS index and %d chunks", len(self.chunks))
