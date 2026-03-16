@@ -73,7 +73,7 @@ def ask(request):
         )
 
     try:
-        retrieved = retrieve_transcripts(query, _file_paths, _transcripts, top_k=15)
+        retrieved = retrieve_transcripts(query)
         if not retrieved:
             return JsonResponse({'error': 'No relevant transcripts found'}, status=404)
 
