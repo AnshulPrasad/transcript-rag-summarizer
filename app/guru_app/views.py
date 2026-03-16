@@ -18,10 +18,10 @@ for p in [str(ROOT), str(ROOT / 'app')]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from config import FILE_PATHS, TRANSCRIPTS, MAX_CONTEXT_TOKENS
-from src.generate_response import generate_response
-from src.retrieve_context import retrieve_transcripts
-from src.tokenizer import count_tokens, trim_to_token_limit
+from config import FILE_PKL, TRANSCRIPTS_PKL, MAX_CONTEXT_TOKENS, CHUNK_FAISS, CHUNK_PKL, ENCODER, MODEL, GROQ_API_KEY, SYSTEM_PROMPT
+from src.generate_response import Response
+from src.retrieve_context import Context
+from src.tokenizer import Tokenizer
 
 # ── Load transcript data once at startup ──────────────────────────────────────
 _file_paths: list = []
@@ -34,9 +34,9 @@ def _load_data():
     if _data_loaded:
         return
     try:
-        with open(FILE_PATHS, 'rb') as f:
+        with open(FILE_PKL, 'rb') as f:
             _file_paths = pickle.load(f)
-        with open(TRANSCRIPTS, 'rb') as f:
+        with open(TRANSCRIPTS_PKL, 'rb') as f:
             _transcripts = pickle.load(f)
         _data_loaded = True
         logger.info('Loaded %d transcripts', len(_transcripts))
@@ -73,24 +73,30 @@ def ask(request):
         )
 
     try:
-        retrieved = retrieve_transcripts(query)
+        obj1 = Context(CHUNK_FAISS, CHUNK_PKL)
+        retrieved = obj1.retrieve_chunks(query, 20, 25)
         if not retrieved:
             return JsonResponse({'error': 'No relevant transcripts found'}, status=404)
 
         full_context = ' '.join(retrieved)
-        limited_context = trim_to_token_limit(full_context, MAX_CONTEXT_TOKENS)
-        answer = generate_response(query, limited_context)
 
-        logger.info('Query: %s | Tokens: %d', query, count_tokens(limited_context))
+        obj2 = Tokenizer(MODEL, ENCODER)
+        limited_context = obj2.trim_to_token_limit(full_context, MAX_CONTEXT_TOKENS)
+
+        obj3 = Response(GROQ_API_KEY, MODEL, ENCODER, SYSTEM_PROMPT)
+        answer = obj3.generate_response(query, limited_context)
+
+        obj4 = Tokenizer(MODEL, ENCODER)
+        logger.info('Query: %s | Tokens: %d', query, obj4.count_tokens(limited_context))
 
         # ── Save to DB log ─────────────────────────────────────────────────────
         try:
-            from guru_app.models import QueryLog
+            from models import QueryLog
             QueryLog.objects.create(
                 user=request.user if request.user.is_authenticated else None,
                 query=query,
                 answer=answer,
-                tokens_used=count_tokens(limited_context),
+                tokens_used=obj4.count_tokens(limited_context),
             )
         except Exception as log_exc:
             logger.warning('Failed to save query log: %s', log_exc)
