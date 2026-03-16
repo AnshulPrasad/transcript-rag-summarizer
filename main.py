@@ -32,7 +32,7 @@ def stage_persist(file_paths, transcripts) -> None:
 
 
 def stage_retrieve(query: str, k: int = 20) -> list[str]:
-    results = retrieve_transcripts(query, k)
+    results = retrieve_transcripts(query, retrieve_k=k)
     if not results:
         logger.warning("No relevant transcripts found")
     return results
