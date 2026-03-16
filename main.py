@@ -2,6 +2,7 @@ import logging
 import pickle
 from pathlib import Path
 
+from src.logger import setup_logging
 from src.download_vtt import download_channel_subtitles
 from src.vtt_to_txt import vtt_to_txt
 from src.retrieve_context import retrieve_transcripts
@@ -10,6 +11,8 @@ from src.embed_transcripts import embedding
 from src.tokenizer import trim_to_token_limit, count_tokens
 from config import CHANNEL_URLS, MAX_CONTEXT_TOKENS, VTT_DIR, TXT_DIR, TRANSCRIPT_INDEX, RETRIEVED_TRANSCRIPTS_FILE, RESPONSE_FILE, \
     FILE_PATHS, TRANSCRIPTS, CHUNKS_PKL
+
+setup_logging()
 
 logger = logging.getLogger(__name__)
 
