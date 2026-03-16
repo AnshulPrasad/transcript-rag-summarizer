@@ -2,13 +2,13 @@ import logging
 import pickle
 from pathlib import Path
 
-from logger import setup_logging
-from download_vtt import Download
-from vtt_to_txt import Clean
-from embed_transcripts import Embed
-from retrieve_context import Context
-from tokenizer import Tokenizer
-from generate_response import Response
+from .logger import setup_logging
+from .download_vtt import Download
+from .vtt_to_txt import Clean
+from .embed_transcripts import Embed
+from .retrieve_context import Context
+from .tokenizer import Tokenizer
+from .generate_response import Response
 from config import CHANNEL_IDS, MAX_CONTEXT_TOKENS, VTT_DIR, TXT_DIR, CHUNK_FAISS, RETRIEVED_TRANSCRIPTS_FILE, RESPONSE_FILE, \
 FILE_PKL, TRANSCRIPTS_PKL, CHUNK_PKL, MODEL, GROQ_API_KEY, SYSTEM_PROMPT, ENCODER
 
