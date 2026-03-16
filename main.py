@@ -88,7 +88,7 @@ def main() -> None:
 
     embedding(transcripts, TRANSCRIPT_INDEX, CHUNKS_PKL)
 
-    retrieved = stage_retrieve(query, file_paths, transcripts)
+    retrieved = stage_retrieve(query)
     if not retrieved:
         return
 
@@ -102,7 +102,6 @@ def main() -> None:
 
     logger.info("Full_context: %d tokens, %d words", count_tokens(full_context), len(full_context.split(" ")), )
     logger.info("Limit_context: %d tokens, %d words", count_tokens(limit_context), len(limit_context.split(" ")))
-    # retrieved = stage_retrieve(query)
 
 
 if __name__ == "__main__":
