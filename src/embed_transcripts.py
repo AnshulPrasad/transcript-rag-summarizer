@@ -5,60 +5,45 @@ from pathlib import Path
 from sentence_transformers import SentenceTransformer
 logger = logging.getLogger(__name__)
 
-EMBED_MODEL = "BAAI/bge-small-en-v1.5"   # better than all-MiniLM-L6-v2, same speed
+class Embed:
+    def __init__(self, transcripts: Path, chunk_index: Path, chunks_pkl: Path) -> None:
+        self.transcripts = transcripts
+        self.chunk_index = chunk_index
+        self.chunks_pkl = chunks_pkl
+        self.EMBED_MODEL = "BAAI/bge-small-en-v1.5"
 
-def chunk_text(text: str, chunk_size: int = 200, overlap: int = 50) -> list[str]:
-    """
-    Split text into overlapping word-level chunks.
+    def chunk_text(self, text: str, chunk_size: int = 200, overlap: int = 50) -> list[str]:
+        words = text.split()
+        chunks = []
+        step = chunk_size - overlap
+        for i in range(0, len(words), step):
+            chunk = " ".join(words[i : i + chunk_size])
+            if len(chunk.split()) >= 50:   # drop tiny tail chunks
+                chunks.append(chunk)
+        return chunks
 
-    Args:
-        text: input text
-        chunk_size: words per chunk
-        overlap: words shared between consecutive chunks
+    def embedding(self) -> None:
+        # 1. Chunk all transcripts
+        all_chunks: list[str] = []
+        with open(self.transcripts, "rb") as f:
+            transcripts = pickle.load(f)
+            for text in transcripts:
+                all_chunks.extend(self.chunk_text(text))
+            logger.info("Total chunks after splitting: %d", len(all_chunks))
 
-    Returns:
-        list of chunk strings (chunks shorter than 50 words are dropped)
-    """
-    words = text.split()
-    chunks = []
-    step = chunk_size - overlap
-    for i in range(0, len(words), step):
-        chunk = " ".join(words[i : i + chunk_size])
-        if len(chunk.split()) >= 50:   # drop tiny tail chunks
-            chunks.append(chunk)
-    return chunks
+        # 2. Embed
+        model = SentenceTransformer(self.EMBED_MODEL)
+        embeddings = model.encode(all_chunks, show_progress_bar=True, normalize_embeddings=True)
 
-def embedding(
-    transcripts: list[str],
-    transcript_index: str,           # path to .faiss FILE (not dir)
-    chunks_pkl: str = "data/chunks.pkl",
-) -> None:
-    """
-    Chunk every transcript, embed all chunks, build FAISS index.
+        # 3. Build FAISS index
+        dimension = embeddings.shape[1]
+        index = faiss.IndexFlatIP(dimension)   # inner-product works well with normalized embeddings
+        index.add(embeddings)
+        faiss.write_index(index, str(self.chunk_index))
 
-    Saves:
-        transcript_index  — FAISS flat-L2 index file
-        chunks_pkl        — pickle of all chunk strings (same order as index)
-    """
-    # 1. Chunk all transcripts
-    all_chunks: list[str] = []
-    for text in transcripts:
-        all_chunks.extend(chunk_text(text))
-    logger.info("Total chunks after splitting: %d", len(all_chunks))
+        # 4. Save chunks so retrieval can map index → text
+        Path(self.chunks_pkl).parent.mkdir(parents=True, exist_ok=True)
+        with open(self.chunks_pkl, "wb") as f:
+            pickle.dump(all_chunks, f)
 
-    # 2. Embed
-    model = SentenceTransformer(EMBED_MODEL)
-    embeddings = model.encode(all_chunks, show_progress_bar=True, normalize_embeddings=True)
-
-    # 3. Build FAISS index  (fix: write to FILE, not mkdir)
-    dimension = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dimension)   # inner-product works well with normalized embeddings
-    index.add(embeddings)
-    faiss.write_index(index, str(transcript_index))   # ← was: transcript_index.mkdir() — BUG FIXED
-
-    # 4. Save chunks so retrieval can map index → text
-    Path(chunks_pkl).parent.mkdir(parents=True, exist_ok=True)
-    with open(chunks_pkl, "wb") as f:
-        pickle.dump(all_chunks, f)
-
-    logger.info("Embedding completed. Index: %s  Chunks: %s", transcript_index, chunks_pkl)
+        logger.info("Embedding completed. Index: %s  Chunks: %s", self.chunk_index, self.chunks_pkl)

@@ -1,28 +1,16 @@
-import tiktoken
-from config import MODEL
+class Tokenizer:
+    def __init__(self, model_name: str, encoder):
+        self.model_name = model_name
+        self.encoder = encoder
+
+    def count_tokens(self, text: str) -> int:
+        if not text:
+            return 0
+        return len(self.encoder.encode(text))
 
 
-# Limit the length of combined transcripts for ChatGPT ready
-try:
-    encoder = tiktoken.encoding_for_model(MODEL)
-except KeyError:
-    # fallback for custom or unrecognized model names
-    encoder = tiktoken.get_encoding("cl100k_base")
-
-
-def count_tokens(text: str) -> int:
-    """Return the number of tokens in a string, using your model's tokenizer."""
-    if not text:
-        return 0
-    return len(encoder.encode(text))
-
-
-def trim_to_token_limit(text: str, max_tokens: int) -> str:
-    """
-    If text exceeds max_tokens, cut it down to the first max_tokens tokens.
-    """
-    tokens = encoder.encode(text)
-    if len(tokens) <= max_tokens:
-        return text
-    # decode only the first max_tokens tokens back into a string
-    return encoder.decode(tokens[:max_tokens])
+    def trim_to_token_limit(self, text: str, max_tokens: int) -> str:
+        tokens = self.encoder.encode(text)
+        if len(tokens) <= max_tokens:
+            return text
+        return self.encoder.decode(tokens[:max_tokens])
