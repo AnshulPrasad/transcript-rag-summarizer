@@ -1,8 +1,9 @@
 __pycache__
+.venv
+.vscode
 data/subtitles_vtt
 data/transcripts_txt
-.vscode/settings.json
-.venv
+logs
 .idea
 uv.lock
 pyproject.toml
