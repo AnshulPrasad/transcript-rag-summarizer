@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 logger = logging.getLogger(__name__)
 
 # ── Ensure project root is on sys.path so config/api/src are importable ─────
-ROOT = Path(__file__).resolve().parent.parent.parent  # project root
+ROOT = Path(__file__).resolve().parent.parent.parent.parent  # project root
 for p in [str(ROOT), str(ROOT / 'app')]:
     if p not in sys.path:
         sys.path.insert(0, p)
