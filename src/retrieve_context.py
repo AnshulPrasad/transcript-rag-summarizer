@@ -33,8 +33,8 @@ def _load_index_and_chunks():
 
 def retrieve_transcripts(
     query: str,
-    top_k: int = 3,
-    retrieve_k: int = 15,
+    top_k: int = 20,
+    retrieve_k: int = 30,
 ) -> list[str]:
     """
     1. Embed query and retrieve top retrieve_k chunks from FAISS.
