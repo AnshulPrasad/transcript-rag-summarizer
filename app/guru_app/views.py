@@ -21,7 +21,7 @@ for p in [str(ROOT), str(ROOT / 'app')]:
 from config import FILE_PATHS, TRANSCRIPTS, MAX_CONTEXT_TOKENS
 from src.generate_response import generate_response
 from src.retrieve_context import retrieve_transcripts
-from src.token import count_tokens, trim_to_token_limit
+from src.tokenizer import count_tokens, trim_to_token_limit
 
 # ── Load transcript data once at startup ──────────────────────────────────────
 _file_paths: list = []

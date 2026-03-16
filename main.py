@@ -7,7 +7,7 @@ from src.vtt_to_txt import vtt_to_txt
 from src.retrieve_context import retrieve_transcripts
 from src.generate_response import generate_response
 from src.embed_transcripts import embedding
-from src.token import trim_to_token_limit, count_tokens
+from src.tokenizer import trim_to_token_limit, count_tokens
 from config import CHANNEL_URLS, MAX_CONTEXT_TOKENS, VTT_DIR, TXT_DIR, TRANSCRIPT_INDEX, RETRIEVED_TRANSCRIPTS_FILE, RESPONSE_FILE, \
     FILE_PATHS, TRANSCRIPTS, CHUNKS_PKL
 
